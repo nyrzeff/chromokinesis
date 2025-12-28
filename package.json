@@ -1,26 +1,30 @@
 {
-  "name": "@nyrzeff/chromokinesis",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "index.js",
-  "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
-  "dependencies": {
-    "@clack/prompts": "^0.11.0",
-    "culori": "^4.0.2"
-  },
-  "description": "Generate color variations in the blink of an eye with this terminal-based tool. Perfect for designers and developers!",
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nyrzeff/chromokinesis.git"
-  },
-  "author": "nyrzeff",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/nyrzeff/chromokinesis/issues"
-  },
-  "homepage": "https://github.com/nyrzeff/chromokinesis#readme"
+    "name": "@nyrzeff/chromokinesis",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "index.ts",
+    "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
+    "dependencies": {
+        "@clack/prompts": "^0.11.0",
+        "culori": "^4.0.2"
+    },
+    "description": "Generate color variations in the blink of an eye with this terminal-based tool. Perfect for designers and developers!",
+    "devDependencies": {
+        "@types/culori": "^4.0.1",
+        "@types/node": "^25.0.3",
+        "typescript": "^5.9.3"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nyrzeff/chromokinesis.git"
+    },
+    "author": "nyrzeff",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/nyrzeff/chromokinesis/issues"
+    },
+    "homepage": "https://github.com/nyrzeff/chromokinesis#readme"
 }
