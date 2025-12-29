@@ -20,7 +20,14 @@ import {
     multiselect
 } from "@clack/prompts";
 
-type ColorFormatType = "hex" | "rgb" | "hsl";
+type ColorFormat = "hex" | "rgb" | "hsl";
+type HueVariants = ["tints" | "shades" | "tones"];
+
+interface Variants {
+    tints?: string;
+    shades?: string;
+    tones?: string;
+}
 
 async function readJsonFile(path: string): Promise<any> {
     try {
@@ -31,7 +38,7 @@ async function readJsonFile(path: string): Promise<any> {
     }
 }
 
-function format(colorOutputFormat: ColorFormatType): any {
+function format(colorOutputFormat: ColorFormat): any {
     if (colorOutputFormat === "hex")
         return formatHex;
     else if (colorOutputFormat === "rgb")
@@ -42,21 +49,22 @@ function format(colorOutputFormat: ColorFormatType): any {
 
 async function generateVariants(
     hex: string,
-    hueVariants: string[],
+    hueVariants: HueVariants,
     amountOfColors: number,
     mixAmount: number,
-    colorOutputFormat: ColorFormatType,
-) {
+    colorOutputFormat: ColorFormat,
+): Promise<Variants> {
     const oklch = converter("oklch");
 
     const hue: any = oklch(hex);
     const formattedHue = formatHex(hue);
 
-    const result = new Map<string, string>();
-
-    // const result = {
-    //     hue: formattedHue,
-    // };
+    const result = {
+        hue: formattedHue,
+        tints: "",
+        shades: "",
+        tones: "",
+    };
 
     const blend = (base: string, mix: number, mixAmount: number) =>
         interpolate([base, mix])(mixAmount);
@@ -68,28 +76,15 @@ async function generateVariants(
     mixColors.set("shades", parse("oklch(0 0 0)"));
     mixColors.set("tones", parse("oklch(0.5 0 0)"));
 
-    result.set("tints", "");
-    result.set("shades", "");
-    result.set("tones", "");
-
-    // result["tints"] = "";
-    // result["shades"] = "";
-    // result["tones"] = "";
-
-    for (let i = 1; i < amountOfColors; i++) {
-        for (const variant of hueVariants) {
+    for (let i = 1; i <= amountOfColors; i++) {
+        for (const variant of hueVariants as ["tints"]) {
             const mixed =
                 blend(hue, mixColors.get(variant), mixAmount * i);
-
             const formatted = format(colorOutputFormat)(mixed);
 
-            if (i < amountOfColors - 1) {
-                let value = result.get(variant);
-                result.set(variant, value += formatted);
-            }
-            else {
-                // console.log("Idk");
-            }
+            if (i !== 1)
+                result[variant] += ", ";
+            result[variant] += formatted;
         }
     }
     return result;
@@ -99,31 +94,25 @@ async function generate(
     amountOfColors: number,
     mixAmount: number
 ): Promise<void> {
-    const colorMap = new Map<string, Map<string, string>>();
+    const allColors = Object.assign(baseColors);
 
-    for (const [name, hex] of Object.entries(baseColors)) {
-        console.log(`Generating variants for ${name}`);
+    for (const [key, value] of Object.entries(baseColors)) {
+        console.log(`Generating variants for ${key}`);
+
         const variants = await generateVariants(
-            hex as string,
+            value as string,
             hueVariants,
             amountOfColors,
             mixAmount,
             colorOutputFormat
         );
 
-        console.log(variants);
-
-        colorMap.set(name, variants);
+        allColors[key] = variants;
     }
-
-    console.log("COLORMAP");
-    console.log(colorMap);
 
     const replacer = (_: unknown, value: string) => {
         return value === "" ? undefined : value;
     };
-
-    const allColors = Object.fromEntries(colorMap);
 
     // TODO: replace hardcoded path
     fs.writeFileSync(
@@ -153,8 +142,7 @@ const colorOutputFormat = await select({
         { value: "rgb", label: "RGB" },
         { value: "hsl", label: "HSL" },
     ],
-    // required: true,
-}) as ColorFormatType;
+}) as ColorFormat;
 
 const hueVariants = await multiselect({
     message: "Select the variants you wish to generate",
@@ -164,7 +152,7 @@ const hueVariants = await multiselect({
         { value: "shades", label: "Shades" },
     ],
     required: true,
-}) as string[];
+}) as HueVariants;
 
 const calculationMethod = await select({
     message: "Pick a calculation method",
@@ -196,7 +184,7 @@ switch (calculationMethod) {
 
         const mixAmountF = parseFloat(mixAmount);
 
-        amountOfColors = 1 / mixAmountF;
+        amountOfColors = Math.floor(1 / mixAmountF);
         generate(amountOfColors, mixAmountF);
         break;
     }
