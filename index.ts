@@ -82,11 +82,17 @@ async function generateVariants(
 
     for (let i = 1; i <= amountOfColors; i++) {
         for (const variant of hueVariants) {
+            if (mixAmount * i >= 1) continue;
+
             const mixed =
                 blend(hue, mixColors.get(variant), mixAmount * i);
             const formatted = format(colorOutputFormat)(mixed);
 
-            if (result[variant]?.includes(formatted)) continue;
+            if (result[variant]?.includes(formatted)
+                || formatted === result.hue) {
+                continue;
+            }
+
             result[variant]?.push(formatted);
         }
     }
