@@ -77,7 +77,7 @@ async function generateVariants(
     mixColors.set("tones", parse("oklch(0.5 0 0)"));
 
     for (let i = 1; i <= amountOfColors; i++) {
-        for (const variant of hueVariants as ["tints"]) {
+        for (const variant of hueVariants) {
             const mixed =
                 blend(hue, mixColors.get(variant), mixAmount * i);
             const formatted = format(colorOutputFormat)(mixed);
@@ -96,11 +96,11 @@ async function generate(
 ): Promise<void> {
     const allColors = Object.assign(baseColors);
 
-    for (const [key, value] of Object.entries(baseColors)) {
+    for (const [key, hex] of Object.entries(baseColors)) {
         console.log(`Generating variants for ${key}`);
 
         const variants = await generateVariants(
-            value as string,
+            hex as string,
             hueVariants,
             amountOfColors,
             mixAmount,
