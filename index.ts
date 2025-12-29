@@ -24,9 +24,10 @@ type ColorFormat = "hex" | "rgb" | "hsl";
 type HueVariants = ["tints" | "shades" | "tones"];
 
 interface Variants {
-    tints?: string;
-    shades?: string;
-    tones?: string;
+    hue: string;
+    tints?: string[];
+    shades?: string[];
+    tones?: string[];
 }
 
 async function readJsonFile(path: string): Promise<any> {
@@ -59,12 +60,15 @@ async function generateVariants(
     const hue: any = oklch(hex);
     const formattedHue = formatHex(hue);
 
-    const result = {
-        hue: formattedHue,
-        tints: "",
-        shades: "",
-        tones: "",
+    const result: Variants = {
+        hue: "",
+        tints: [],
+        shades: [],
+        tones: [],
     };
+
+    if (typeof formattedHue === "string")
+        result.hue = formattedHue;
 
     const blend = (base: string, mix: number, mixAmount: number) =>
         interpolate([base, mix])(mixAmount);
@@ -82,9 +86,8 @@ async function generateVariants(
                 blend(hue, mixColors.get(variant), mixAmount * i);
             const formatted = format(colorOutputFormat)(mixed);
 
-            if (i !== 1)
-                result[variant] += ", ";
-            result[variant] += formatted;
+            if (result[variant]?.includes(formatted)) continue;
+            result[variant]?.push(formatted);
         }
     }
     return result;
@@ -177,31 +180,38 @@ switch (calculationMethod) {
             placeholder: "Not sure? Use the initial value to test it out",
             initialValue: "0.3",
             validate(value): any {
-                if (parseFloat(value) <= 0 || parseFloat(value) >= 1)
+                const valueF = parseFloat(value);
+
+                if (valueF <= 0 || valueF >= 1)
                     return "Mix amount has to be greater than 0 and less than 1";
+                if (Math.floor(1 / valueF) > 100)
+                    return "Please choose a larger value, as with this value the amount of colors to generate would be too large";
             },
         }) as string;
 
         const mixAmountF = parseFloat(mixAmount);
 
         amountOfColors = Math.floor(1 / mixAmountF);
+        console.log(amountOfColors);
         generate(amountOfColors, mixAmountF);
         break;
     }
     case "amountOfColors": {
         const amountOfColors = await text({
-            message: "Specify the amount of colors you want in your palette",
+            message: "Specify the total amount of colors you want",
             placeholder: "...",
-            initialValue: "7",
+            initialValue: "5",
             validate(value): any {
-                if (parseInt(value) < 2 || parseInt(value) > 10)
-                    return "Amount of colors has to be between 2 and 10";
+                const valueI = parseInt(value);
+
+                if (valueI < 2 || valueI > 100)
+                    return "Amount of colors has to be between 2 and 100";
             },
         }) as string;
 
         const amountOfColorsI = parseInt(amountOfColors);
 
-        mixAmount = Math.round((1 / amountOfColorsI) * 10) / 10;
+        mixAmount = 1 / amountOfColorsI;
         generate(amountOfColorsI, mixAmount);
         break;
     }
