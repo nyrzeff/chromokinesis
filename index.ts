@@ -58,13 +58,10 @@ async function generateVariants(
     const oklch = converter("oklch");
 
     const hue: any = oklch(hex);
-    const formattedHue = formatHex(hue);
+    const formattedHue = format(colorOutputFormat)(hue);
 
     const result: Variants = {
         hue: "",
-        tints: [],
-        shades: [],
-        tones: [],
     };
 
     if (typeof formattedHue === "string")
@@ -88,10 +85,9 @@ async function generateVariants(
                 blend(hue, mixColors.get(variant), mixAmount * i);
             const formatted = format(colorOutputFormat)(mixed);
 
-            if (result[variant]?.includes(formatted)
-                || formatted === result.hue) {
-                continue;
-            }
+            if (formatted === result.hue) continue;
+            if (typeof result[variant] === "undefined") result[variant] = [];
+            if (result[variant]?.includes(formatted)) continue;
 
             result[variant]?.push(formatted);
         }
@@ -198,7 +194,6 @@ switch (calculationMethod) {
         const mixAmountF = parseFloat(mixAmount);
 
         amountOfColors = Math.floor(1 / mixAmountF);
-        console.log(amountOfColors);
         generate(amountOfColors, mixAmountF);
         break;
     }
