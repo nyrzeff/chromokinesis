@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "fs";
+import os from "os";
 import { readFile } from "node:fs/promises";
 
 import {
@@ -143,18 +144,20 @@ async function generate(
 
     // TODO: replace hardcoded path
     fs.writeFileSync(
-        "/home/nyrzeff/chromokinesis/custom-palette.json",
+        `/home/${username}/chromokinesis/custom-palette.json`,
         JSON.stringify(allColors, replacer, 2));
 
-    outro("✅ Your color variants are available in custom-palette.json");
+    outro("Your color variants are available in custom-palette.json");
 }
 
 intro("chromokinesis");
 
-    placeholder: "/home/nyrzeff/chromokinesis/colors.json",
-    initialValue: "/home/nyrzeff/chromokinesis/colors.json",
+const username = os.userInfo().username;
+
 const colorFilePath = await text({
     message: "Specify the path to the file containing the base colors",
+    placeholder: `/home/${username}/chromokinesis/colors.json`,
+    initialValue: `/home/${username}/chromokinesis/colors.json`,
     validate(value): any {
         const extension = value.substring(value.lastIndexOf(".") + 1);
 
