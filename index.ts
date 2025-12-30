@@ -30,13 +30,23 @@ interface Variants {
     tones?: object[];
 }
 
-async function readJsonFile(path: string): Promise<any> {
+function areColorsValid(colors: string[]): boolean {
+    for (let color of colors)
+        if (typeof parse(color) === "undefined") return false;
+    return true;
+}
+
+async function getBaseColors(path: string): Promise<object | null> {
     try {
         const data = await readFile(path, { encoding: "utf-8" });
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+
+        if (!areColorsValid(Object.values(parsed))) return null;
+        return parsed;
     } catch (err: any) {
         console.error(`Error reading file: ${err.message}`);
     }
+    return null;
 }
 
 function format(colorOutputFormat: ColorFormat): any {
@@ -109,6 +119,7 @@ async function generate(
     amountOfColors: number,
     mixAmount: number
 ): Promise<void> {
+    if (!baseColors) return;
     const allColors = Object.assign(baseColors);
 
     for (const [key, hex] of Object.entries(baseColors)) {
@@ -145,11 +156,19 @@ const colorsPath = await text({
     placeholder: "/home/nyrzeff/chromokinesis/colors.json",
     initialValue: "/home/nyrzeff/chromokinesis/colors.json",
     validate(value): any {
+        const extension = value.substring(value.lastIndexOf(".") + 1);
+
         if (value.length === 0) return "Path is mandatory";
+        if (extension !== "json") return "Chromokinesis only supports .json files at the moment";
     },
 }) as string;
 
-const baseColors = await readJsonFile(colorsPath);
+const baseColors = await getBaseColors(colorFilePath);
+
+if (!baseColors) {
+    outro("Exiting program because an error occurred while reading the file");
+    process.exit();
+}
 
 const colorOutputFormat = await select({
     message: "Select the color output format",
