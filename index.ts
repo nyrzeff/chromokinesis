@@ -63,6 +63,9 @@ async function generateVariants(
 
     const result: Variants = {
         hue: "",
+        tints: [],
+        shades: [],
+        tones: [],
     };
 
     if (typeof formattedHue === "string")
@@ -83,14 +86,12 @@ async function generateVariants(
             const roundedMixAmount = +((mixAmount * i).toFixed(2));
 
             if (roundedMixAmount >= 1) continue;
-            console.log(roundedMixAmount);
 
             const mixed =
                 blend(hue, mixColors.get(variant), roundedMixAmount);
             const formatted = format(colorOutputFormat)(mixed);
 
             if (formatted === result.hue) continue;
-            if (typeof result[variant] === "undefined") result[variant] = [];
             if (result[variant]?.includes(formatted)) continue;
 
             const title =
@@ -125,8 +126,8 @@ async function generate(
         allColors[key] = variants;
     }
 
-    const replacer = (_: unknown, value: string) => {
-        return value === "" ? undefined : value;
+    const replacer = (_: string, value: object[]) => {
+        return value.length === 0 ? undefined : value;
     };
 
     // TODO: replace hardcoded path
