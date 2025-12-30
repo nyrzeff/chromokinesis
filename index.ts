@@ -25,9 +25,9 @@ type HueVariants = ["tints" | "shades" | "tones"];
 
 interface Variants {
     hue: string;
-    tints?: string[];
-    shades?: string[];
-    tones?: string[];
+    tints?: object[];
+    shades?: object[];
+    tones?: object[];
 }
 
 async function readJsonFile(path: string): Promise<any> {
@@ -49,6 +49,7 @@ function format(colorOutputFormat: ColorFormat): any {
 }
 
 async function generateVariants(
+    key: string,
     hex: string,
     hueVariants: HueVariants,
     amountOfColors: number,
@@ -79,17 +80,25 @@ async function generateVariants(
 
     for (let i = 1; i <= amountOfColors; i++) {
         for (const variant of hueVariants) {
-            if (mixAmount * i >= 1) continue;
+            const roundedMixAmount = +((mixAmount * i).toFixed(2));
+
+            if (roundedMixAmount >= 1) continue;
+            console.log(roundedMixAmount);
 
             const mixed =
-                blend(hue, mixColors.get(variant), mixAmount * i);
+                blend(hue, mixColors.get(variant), roundedMixAmount);
             const formatted = format(colorOutputFormat)(mixed);
 
             if (formatted === result.hue) continue;
             if (typeof result[variant] === "undefined") result[variant] = [];
             if (result[variant]?.includes(formatted)) continue;
 
-            result[variant]?.push(formatted);
+            const title =
+                `${key}-${variant.slice(0, -1)}-${parseInt((roundedMixAmount * 100).toString())}`;
+
+            const color = { [title]: formatted };
+
+            result[variant]?.push(color);
         }
     }
     return result;
@@ -105,6 +114,7 @@ async function generate(
         console.log(`Generating variants for ${key}`);
 
         const variants = await generateVariants(
+            key,
             hex as string,
             hueVariants,
             amountOfColors,
