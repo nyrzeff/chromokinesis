@@ -60,10 +60,8 @@ function format(colorOutputFormat: ColorFormat): any {
 async function computeVariants(
     colorName: string,
     colorCode: string,
-    hueVariants: HueVariants,
-    amountOfColors: number,
-    mixAmount: number,
-    colorOutputFormat: ColorFormat,
+    colorAmount: number,
+    mixAmount: number
 ): Promise<Variants> {
     const oklch = converter("oklch");
 
@@ -89,7 +87,7 @@ async function computeVariants(
         tones: "#636363"
     };
 
-    for (let i = 1; i <= amountOfColors; i++) {
+    for (let i = 1; i <= colorAmount; i++) {
         for (const variant of hueVariants) {
             const roundedMixAmount = +((mixAmount * i).toFixed(2));
 
@@ -118,7 +116,7 @@ async function computeVariants(
 };
 
 async function generatePalette(
-    amountOfColors: number,
+    colorAmount: number,
     mixAmount: number
 ): Promise<void> {
     if (!baseColors) return;
@@ -130,10 +128,8 @@ async function generatePalette(
         const variants = await computeVariants(
             colorName,
             colorCode as string,
-            hueVariants,
-            amountOfColors,
-            mixAmount,
-            colorOutputFormat
+            colorAmount,
+            mixAmount
         );
 
         palette[colorName] = variants;
@@ -201,13 +197,11 @@ const calculationMethod = await select({
             label: "Calculate according to the amount to mix"
         },
         {
-            value: "amountOfColors",
+            value: "colorAmount",
             label: "Calculate according to the total amount of colors"
         },
     ],
-}) as "mixAmount" | "amountOfColors";
-
-let amountOfColors: number, mixAmount: number;
+}) as "mixAmount" | "colorAmount";
 
 switch (calculationMethod) {
     case "mixAmount": {
@@ -226,13 +220,12 @@ switch (calculationMethod) {
         }) as string;
 
         const mixAmountF = parseFloat(mixAmount);
-
-        amountOfColors = Math.floor(1 / mixAmountF);
-        generatePalette(amountOfColors, mixAmountF);
+        const colorAmount = Math.floor(1 / mixAmountF);
+        generatePalette(colorAmount, mixAmountF);
         break;
     }
-    case "amountOfColors": {
-        const amountOfColors = await text({
+    case "colorAmount": {
+        const colorAmount = await text({
             message: "Specify the amount of variants to generate (1-100)",
             placeholder: "...",
             initialValue: "5",
@@ -244,10 +237,10 @@ switch (calculationMethod) {
             },
         }) as string;
 
-        const amountOfColorsI = parseInt(amountOfColors);
+        const colorAmountI = parseInt(colorAmount);
 
-        mixAmount = 1 / (amountOfColorsI + 1);
-        generatePalette(amountOfColorsI, mixAmount);
+        const mixAmount = 1 / (colorAmountI + 1);
+        generatePalette(colorAmountI, mixAmount);
         break;
     }
 }
