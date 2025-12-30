@@ -59,9 +59,9 @@ function format(colorOutputFormat: ColorFormat): any {
         return formatHsl;
 }
 
-async function generateVariants(
-    key: string,
-    hex: string,
+async function computeVariants(
+    colorName: string,
+    colorCode: string,
     hueVariants: HueVariants,
     amountOfColors: number,
     mixAmount: number,
@@ -69,7 +69,7 @@ async function generateVariants(
 ): Promise<Variants> {
     const oklch = converter("oklch");
 
-    const hue: any = oklch(hex);
+    const hue: any = oklch(colorCode);
     const formattedHue = format(colorOutputFormat)(hue);
 
     const result: Variants = {
@@ -109,7 +109,7 @@ async function generateVariants(
                 continue;
 
             const title =
-                `${key}-${variant.slice(0, -1)}-${+(roundedMixAmount * 100).toFixed(2)}`;
+                `${colorName}-${variant.slice(0, -1)}-${+(roundedMixAmount * 100).toFixed(2)}`;
 
             const color = { [title]: formatted };
 
@@ -119,26 +119,26 @@ async function generateVariants(
     return result;
 };
 
-async function generate(
+async function generatePalette(
     amountOfColors: number,
     mixAmount: number
 ): Promise<void> {
     if (!baseColors) return;
-    const allColors = Object.assign(baseColors);
+    const palette = Object.assign(baseColors);
 
-    for (const [key, hex] of Object.entries(baseColors)) {
-        console.log(`Generating variants for ${key}`);
+    for (const [colorName, colorCode] of Object.entries(baseColors)) {
+        console.log(`Generating variants for ${colorName}`);
 
-        const variants = await generateVariants(
-            key,
-            hex as string,
+        const variants = await computeVariants(
+            colorName,
+            colorCode as string,
             hueVariants,
             amountOfColors,
             mixAmount,
             colorOutputFormat
         );
 
-        allColors[key] = variants;
+        palette[colorName] = variants;
     }
 
     const replacer = (_: string, value: object[]) => {
@@ -148,7 +148,7 @@ async function generate(
     // TODO: replace hardcoded path
     fs.writeFileSync(
         `/home/${username}/chromokinesis/custom-palette.json`,
-        JSON.stringify(allColors, replacer, 2));
+        JSON.stringify(palette, replacer, 2));
 
     outro("Your color variants are available in custom-palette.json");
 }
@@ -207,7 +207,7 @@ const calculationMethod = await select({
             label: "Calculate according to the total amount of colors"
         },
     ],
-}) as string;
+}) as "mixAmount" | "amountOfColors";
 
 let amountOfColors: number, mixAmount: number;
 
@@ -230,7 +230,7 @@ switch (calculationMethod) {
         const mixAmountF = parseFloat(mixAmount);
 
         amountOfColors = Math.floor(1 / mixAmountF);
-        generate(amountOfColors, mixAmountF);
+        generatePalette(amountOfColors, mixAmountF);
         break;
     }
     case "amountOfColors": {
@@ -249,7 +249,7 @@ switch (calculationMethod) {
         const amountOfColorsI = parseInt(amountOfColors);
 
         mixAmount = 1 / (amountOfColorsI + 1);
-        generate(amountOfColorsI, mixAmount);
+        generatePalette(amountOfColorsI, mixAmount);
         break;
     }
 }
