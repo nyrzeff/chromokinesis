@@ -151,10 +151,10 @@ async function generate(
 
 intro("chromokinesis");
 
-const colorsPath = await text({
-    message: "Specify the path to the colors file",
     placeholder: "/home/nyrzeff/chromokinesis/colors.json",
     initialValue: "/home/nyrzeff/chromokinesis/colors.json",
+const colorFilePath = await text({
+    message: "Specify the path to the file containing the base colors",
     validate(value): any {
         const extension = value.substring(value.lastIndexOf(".") + 1);
 
