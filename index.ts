@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import fs from "fs";
 import os from "os";
 import { readFile } from "node:fs/promises";
