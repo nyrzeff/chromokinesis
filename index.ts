@@ -26,9 +26,9 @@ type HueVariants = ["tints" | "shades" | "tones"];
 
 interface Variants {
     hue: string;
-    tints?: object[];
-    shades?: object[];
-    tones?: object[];
+    tints?: Record<string, string>[];
+    shades?: Record<string, string>[];
+    tones?: Record<string, string>[];
 }
 
 function areColorsValid(colors: string[]): boolean {
@@ -82,15 +82,14 @@ async function generateVariants(
     if (typeof formattedHue === "string")
         result.hue = formattedHue;
 
-    const blend = (base: string, mix: number, mixAmount: number) =>
+    const blend = (base: string, mix: string, mixAmount: number) =>
         interpolate([base, mix])(mixAmount);
 
-    // add proper type
-    const mixColors = new Map<string, any>();
-
-    mixColors.set("tints", parse("oklch(1 0 0)"));
-    mixColors.set("shades", parse("oklch(0 0 0)"));
-    mixColors.set("tones", parse("oklch(0.5 0 0)"));
+    const mixColors = {
+        tints: "#ffffff",
+        shades: "#000000",
+        tones: "#636363"
+    };
 
     for (let i = 1; i <= amountOfColors; i++) {
         for (const variant of hueVariants) {
@@ -99,14 +98,18 @@ async function generateVariants(
             if (roundedMixAmount >= 1) continue;
 
             const mixed =
-                blend(hue, mixColors.get(variant), roundedMixAmount);
+                blend(hue, mixColors[variant], roundedMixAmount);
             const formatted = format(colorOutputFormat)(mixed);
 
-            if (formatted === result.hue) continue;
-            if (result[variant]?.includes(formatted)) continue;
+            if (Object.values(mixColors).includes(formatted) ||
+                formatted === result.hue ||
+                result["shades"]!.map((variant: Record<string, string>) =>
+                    Object.values(variant)[0]).includes(formatted)
+            )
+                continue;
 
             const title =
-                `${key}-${variant.slice(0, -1)}-${parseInt((roundedMixAmount * 100).toString())}`;
+                `${key}-${variant.slice(0, -1)}-${+(roundedMixAmount * 100).toFixed(2)}`;
 
             const color = { [title]: formatted };
 
@@ -232,20 +235,20 @@ switch (calculationMethod) {
     }
     case "amountOfColors": {
         const amountOfColors = await text({
-            message: "Specify the total amount of colors you want",
+            message: "Specify the amount of variants to generate (1-100)",
             placeholder: "...",
             initialValue: "5",
             validate(value): any {
                 const valueI = parseInt(value);
 
-                if (valueI < 2 || valueI > 100)
-                    return "Amount of colors has to be between 2 and 100";
+                if (valueI < 1 || valueI > 100)
+                    return "Amount of variants has to be between 1 and 100";
             },
         }) as string;
 
         const amountOfColorsI = parseInt(amountOfColors);
 
-        mixAmount = 1 / amountOfColorsI;
+        mixAmount = 1 / (amountOfColorsI + 1);
         generate(amountOfColorsI, mixAmount);
         break;
     }
