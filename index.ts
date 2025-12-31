@@ -20,8 +20,8 @@ import {
 } from "@clack/prompts";
 
 type ColorFormat = "hex" | "rgb" | "hsl";
-type HueVariants = ["tints" | "shades" | "tones"];
-type ExportTypes = "json" | "css";
+type HueVariant = "tints" | "shades" | "tones";
+type ExportType = "json" | "css";
 
 interface Variants {
     hue: string;
@@ -136,19 +136,19 @@ async function generatePalette(
         palette[colorName] = variants;
     }
 
-    const exportAs = await multiselect({
+    const exportTypes = await multiselect({
         message: "Select export types, if any",
         options: [
             { value: "json", label: "Export as JSON file" },
             { value: "css", label: "Export as CSS variables" },
         ],
         required: true,
-    }) as [ExportTypes];
+    }) as [ExportType];
 
     const newFilePrefix =
         `/home/${username}/chromokinesis/custom-palette`;
 
-    exportAs.forEach((exportType: ExportTypes) => {
+    exportTypes.forEach((exportType: ExportType) => {
         switch (exportType) {
             case "json": {
                 const replacer = (_: string, value: object[]) =>
@@ -244,7 +244,7 @@ const hueVariants = await multiselect({
         { value: "shades", label: "Shades" },
     ],
     required: true,
-}) as HueVariants;
+}) as [HueVariant];
 
 const calculationMethod = await select({
     message: "Pick a calculation method",
