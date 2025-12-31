@@ -1,6 +1,6 @@
-import fs from "fs";
-import os from "os";
 import { readFile } from "node:fs/promises";
+import { writeFileSync } from "node:fs";
+import os from "os";
 
 import {
     converter,
@@ -21,6 +21,7 @@ import {
 
 type ColorFormat = "hex" | "rgb" | "hsl";
 type HueVariants = ["tints" | "shades" | "tones"];
+type ExportTypes = "json" | "css";
 
 interface Variants {
     hue: string;
@@ -135,14 +136,70 @@ async function generatePalette(
         palette[colorName] = variants;
     }
 
-    const replacer = (_: string, value: object[]) => {
-        return value.length === 0 ? undefined : value;
-    };
+    const exportAs = await multiselect({
+        message: "Select export types, if any",
+        options: [
+            { value: "json", label: "Export as JSON file" },
+            { value: "css", label: "Export as CSS variables" },
+        ],
+        required: true,
+    }) as [ExportTypes];
 
-    // TODO: replace hardcoded path
-    fs.writeFileSync(
-        `/home/${username}/chromokinesis/custom-palette.json`,
-        JSON.stringify(palette, replacer, 2));
+    const newFilePrefix =
+        `/home/${username}/chromokinesis/custom-palette`;
+
+    exportAs.forEach((exportType: ExportTypes) => {
+        switch (exportType) {
+            case "json": {
+                const replacer = (_: string, value: object[]) =>
+                    value.length === 0 ? undefined : value;
+                const json = JSON.stringify(palette, replacer, 2);
+                const file = `${newFilePrefix}.json`;
+
+                try {
+                    writeFileSync(file, json);
+                } catch (err: any) {
+                    console.error(`Error writing file: ${err.message}`);
+                }
+                break;
+            }
+            case "css": {
+                let colors: Record<string, string> = {};
+
+                for (let [hueKey, hueValue] of Object.entries(palette)) {
+                    const hueName = `--color-${hueKey}-hue`;
+                    colors[hueName] = palette[hueKey].hue;
+
+                    for (let [variantKey, variantValue] of
+                        Object.entries(hueValue as Variants).filter((v) =>
+                            v[0] !== "hue")) {
+                        if (variantValue.length === 0) continue;
+
+                        variantValue.forEach(
+                            (variants: Record<string, string>,
+                                index: number) => {
+                                const key = Object.keys(variants)[0] as string;
+                                const variantName =
+                                    `--color-${Object.keys(variants)[0]}`;
+                                colors[variantName] =
+                                    palette[hueKey][variantKey][index][key];
+                            });
+                    }
+                }
+
+                const css = ":root " +
+                    JSON.stringify(colors, null, 2).replaceAll("\"", "");
+                const file = `${newFilePrefix}.css`;
+
+                try {
+                    writeFileSync(file, css);
+                } catch (err: any) {
+                    console.error(`Error writing file: ${err.message}`);
+                }
+                break;
+            }
+        }
+    });
 
     outro("Your color variants are available in custom-palette.json");
 }
