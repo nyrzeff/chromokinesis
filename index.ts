@@ -8,16 +8,10 @@ import {
     formatHex,
     formatRgb,
     formatHsl,
-    parse
+    parse,
 } from "culori";
 
-import {
-    intro,
-    outro,
-    text,
-    select,
-    multiselect
-} from "@clack/prompts";
+import { intro, outro, text, select, multiselect } from "@clack/prompts";
 
 type ColorFormat = "hex" | "rgb" | "hsl";
 type HueVariant = "tints" | "shades" | "tones";
@@ -50,19 +44,16 @@ async function getBaseColors(path: string): Promise<object | null> {
 }
 
 function format(colorOutputFormat: ColorFormat): any {
-    if (colorOutputFormat === "hex")
-        return formatHex;
-    else if (colorOutputFormat === "rgb")
-        return formatRgb;
-    else if (colorOutputFormat === "hsl")
-        return formatHsl;
+    if (colorOutputFormat === "hex") return formatHex;
+    else if (colorOutputFormat === "rgb") return formatRgb;
+    else if (colorOutputFormat === "hsl") return formatHsl;
 }
 
 async function computeVariants(
     colorName: string,
     colorCode: string,
     colorAmount: number,
-    mixAmount: number
+    mixAmount: number,
 ): Promise<Variants> {
     const oklch = converter("oklch");
 
@@ -76,8 +67,7 @@ async function computeVariants(
         tones: [],
     };
 
-    if (typeof formattedHue === "string")
-        result.hue = formattedHue;
+    if (typeof formattedHue === "string") result.hue = formattedHue;
 
     const blend = (base: string, mix: string, mixAmount: number) =>
         interpolate([base, mix])(mixAmount);
@@ -85,40 +75,39 @@ async function computeVariants(
     const mixColors = {
         tints: "#ffffff",
         shades: "#000000",
-        tones: "#636363"
+        tones: "#636363",
     };
 
     for (let i = 1; i <= colorAmount; i++) {
         for (const variant of hueVariants) {
-            const roundedMixAmount = +((mixAmount * i).toFixed(2));
+            const roundedMixAmount = +(mixAmount * i).toFixed(2);
 
             if (roundedMixAmount >= 1) continue;
 
-            const mixed =
-                blend(hue, mixColors[variant], roundedMixAmount);
+            const mixed = blend(hue, mixColors[variant], roundedMixAmount);
             const formatted = format(colorOutputFormat)(mixed);
 
-            if (Object.values(mixColors).includes(formatted) ||
+            if (
+                Object.values(mixColors).includes(formatted) ||
                 formatted === result.hue ||
-                result["shades"]!.map((variant: Record<string, string>) =>
-                    Object.values(variant)[0]).includes(formatted)
+                result["shades"]!.map(
+                    (variant: Record<string, string>) =>
+                        Object.values(variant)[0],
+                ).includes(formatted)
             )
                 continue;
 
-            const title =
-                `${colorName}-${variant.slice(0, -1)}-${+(roundedMixAmount * 100).toFixed(2)}`;
-
+            const title = `${colorName}-${variant.slice(0, -1)}-${+(roundedMixAmount * 100).toFixed(2)}`;
             const color = { [title]: formatted };
-
             result[variant]?.push(color);
         }
     }
     return result;
-};
+}
 
 async function generatePalette(
     colorAmount: number,
-    mixAmount: number
+    mixAmount: number,
 ): Promise<void> {
     if (!baseColors) return;
     const palette = Object.assign(baseColors);
@@ -130,23 +119,22 @@ async function generatePalette(
             colorName,
             colorCode as string,
             colorAmount,
-            mixAmount
+            mixAmount,
         );
 
         palette[colorName] = variants;
     }
 
-    const exportTypes = await multiselect({
+    const exportTypes = (await multiselect({
         message: "Select export types, if any",
         options: [
             { value: "json", label: "Export as JSON file" },
             { value: "css", label: "Export as CSS variables" },
         ],
         required: true,
-    }) as [ExportType];
+    })) as [ExportType];
 
-    const newFilePrefix =
-        `/home/${username}/chromokinesis/custom-palette`;
+    const newFilePrefix = `/home/${username}/chromokinesis/custom-palette`;
 
     exportTypes.forEach((exportType: ExportType) => {
         switch (exportType) {
@@ -170,25 +158,28 @@ async function generatePalette(
                     const hueName = `--color-${hueKey}-hue`;
                     colors[hueName] = palette[hueKey].hue;
 
-                    for (let [variantKey, variantValue] of
-                        Object.entries(hueValue as Variants).filter((v) =>
-                            v[0] !== "hue")) {
+                    for (let [variantKey, variantValue] of Object.entries(
+                        hueValue as Variants,
+                    ).filter((v) => v[0] !== "hue")) {
                         if (variantValue.length === 0) continue;
 
                         variantValue.forEach(
-                            (variants: Record<string, string>,
-                                index: number) => {
+                            (
+                                variants: Record<string, string>,
+                                index: number,
+                            ) => {
                                 const key = Object.keys(variants)[0] as string;
-                                const variantName =
-                                    `--color-${Object.keys(variants)[0]}`;
+                                const variantName = `--color-${Object.keys(variants)[0]}`;
                                 colors[variantName] =
                                     palette[hueKey][variantKey][index][key];
-                            });
+                            },
+                        );
                     }
                 }
 
-                const css = ":root " +
-                    JSON.stringify(colors, null, 2).replaceAll("\"", "");
+                const css =
+                    ":root " +
+                    JSON.stringify(colors, null, 2).replaceAll('"', "");
                 const file = `${newFilePrefix}.css`;
 
                 try {
@@ -208,7 +199,7 @@ intro("chromokinesis");
 
 const username = os.userInfo().username;
 
-const colorFilePath = await text({
+const colorFilePath = (await text({
     message: "Specify the path to the file containing the base colors",
     placeholder: `/home/${username}/chromokinesis/colors.json`,
     initialValue: `/home/${username}/chromokinesis/colors.json`,
@@ -216,9 +207,10 @@ const colorFilePath = await text({
         const extension = value.substring(value.lastIndexOf(".") + 1);
 
         if (value.length === 0) return "Path is mandatory";
-        if (extension !== "json") return "Chromokinesis only supports .json files at the moment";
+        if (extension !== "json")
+            return "Chromokinesis only supports .json files at the moment";
     },
-}) as string;
+})) as string;
 
 const baseColors = await getBaseColors(colorFilePath);
 
@@ -227,16 +219,16 @@ if (!baseColors) {
     process.exit();
 }
 
-const colorOutputFormat = await select({
+const colorOutputFormat = (await select({
     message: "Select the color output format",
     options: [
         { value: "hex", label: "Hex" },
         { value: "rgb", label: "RGB" },
         { value: "hsl", label: "HSL" },
     ],
-}) as ColorFormat;
+})) as ColorFormat;
 
-const hueVariants = await multiselect({
+const hueVariants = (await multiselect({
     message: "Select the variants you wish to generate",
     options: [
         { value: "tints", label: "Tints" },
@@ -244,25 +236,25 @@ const hueVariants = await multiselect({
         { value: "shades", label: "Shades" },
     ],
     required: true,
-}) as [HueVariant];
+})) as [HueVariant];
 
-const calculationMethod = await select({
+const calculationMethod = (await select({
     message: "Pick a calculation method",
     options: [
         {
             value: "mixAmount",
-            label: "Calculate according to the amount to mix"
+            label: "Calculate according to the amount to mix",
         },
         {
             value: "colorAmount",
-            label: "Calculate according to the total amount of colors"
+            label: "Calculate according to the total amount of colors",
         },
     ],
-}) as "mixAmount" | "colorAmount";
+})) as "mixAmount" | "colorAmount";
 
 switch (calculationMethod) {
     case "mixAmount": {
-        const mixAmount = await text({
+        const mixAmount = (await text({
             message: "Specify the amount to mix (0-1)",
             placeholder: "Not sure? Use the initial value to test it out",
             initialValue: "0.3",
@@ -274,7 +266,7 @@ switch (calculationMethod) {
                 if (Math.floor(1 / valueF) > 100)
                     return "Please choose a larger value, as with this value the amount of colors to generate would be too large";
             },
-        }) as string;
+        })) as string;
 
         const mixAmountF = parseFloat(mixAmount);
         const colorAmount = Math.floor(1 / mixAmountF);
@@ -282,7 +274,7 @@ switch (calculationMethod) {
         break;
     }
     case "colorAmount": {
-        const colorAmount = await text({
+        const colorAmount = (await text({
             message: "Specify the amount of variants to generate (1-100)",
             placeholder: "...",
             initialValue: "5",
@@ -292,7 +284,7 @@ switch (calculationMethod) {
                 if (valueI < 1 || valueI > 100)
                     return "Amount of variants has to be between 1 and 100";
             },
-        }) as string;
+        })) as string;
 
         const colorAmountI = parseInt(colorAmount);
 
