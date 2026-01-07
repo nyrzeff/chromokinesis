@@ -203,12 +203,13 @@ const colorFilePath = (await text({
     message: "Specify the path to the file containing the base colors",
     placeholder: `/home/${username}/chromokinesis/colors.json`,
     initialValue: `/home/${username}/chromokinesis/colors.json`,
-    validate(value): any {
+    validate(value): string {
         const extension = value.substring(value.lastIndexOf(".") + 1);
 
         if (value.length === 0) return "Path is mandatory";
         if (extension !== "json")
             return "Chromokinesis only supports .json files at the moment";
+        return "";
     },
 })) as string;
 
@@ -258,13 +259,14 @@ switch (calculationMethod) {
             message: "Specify the amount to mix (0-1)",
             placeholder: "Not sure? Use the initial value to test it out",
             initialValue: "0.3",
-            validate(value): any {
+            validate(value): string {
                 const valueF = parseFloat(value);
 
                 if (valueF <= 0 || valueF >= 1)
                     return "Mix amount has to be greater than 0 and less than 1";
                 if (Math.floor(1 / valueF) > 100)
                     return "Please choose a larger value, as with this value the amount of colors to generate would be too large";
+                return "";
             },
         })) as string;
 
@@ -278,11 +280,12 @@ switch (calculationMethod) {
             message: "Specify the amount of variants to generate (1-100)",
             placeholder: "...",
             initialValue: "5",
-            validate(value): any {
+            validate(value): string {
                 const valueI = parseInt(value);
 
                 if (valueI < 1 || valueI > 100)
                     return "Amount of variants has to be between 1 and 100";
+                return "";
             },
         })) as string;
 
