@@ -11,6 +11,8 @@ import {
     parse,
 } from "culori";
 
+import type { Oklch } from "culori";
+
 import { intro, outro, text, select, multiselect } from "@clack/prompts";
 
 type ColorFormat = "hex" | "rgb" | "hsl";
@@ -57,7 +59,7 @@ async function computeVariants(
 ): Promise<Variants> {
     const oklch = converter("oklch");
 
-    const hue: any = oklch(colorCode);
+    const hue: Oklch | undefined = oklch(colorCode);
     const formattedHue = format(colorOutputFormat)(hue);
 
     const result: Variants = {
@@ -84,7 +86,11 @@ async function computeVariants(
 
             if (roundedMixAmount >= 1) continue;
 
-            const mixed = blend(hue, mixColors[variant], roundedMixAmount);
+            const mixed = blend(
+                result.hue,
+                mixColors[variant],
+                roundedMixAmount,
+            );
             const formatted = format(colorOutputFormat)(mixed);
 
             if (
