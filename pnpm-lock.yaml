@@ -19,8 +19,8 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
       '@types/node':
-        specifier: ^25.0.3
-        version: 25.0.3
+        specifier: ^25.0.10
+        version: 25.0.10
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -36,8 +36,8 @@ packages:
   '@types/culori@4.0.1':
     resolution: {integrity: sha512-43M51r/22CjhbOXyGT361GZ9vncSVQ39u62x5eJdBQFviI8zWp2X5jzqg7k4M6PVgDQAClpy2bUe2dtwEgEDVQ==}
 
-  '@types/node@25.0.3':
-    resolution: {integrity: sha512-W609buLVRVmeW693xKfzHeIV6nJGGz98uCPfeXI1ELMLXVeKYZ9m15fAMSaUPBHYLGFsVRcMmSCksQOrZV9BYA==}
+  '@types/node@25.0.10':
+    resolution: {integrity: sha512-zWW5KPngR/yvakJgGOmZ5vTBemDoSqF3AcV/LrO5u5wTWyEAVVh+IT39G4gtyAkh3CtTZs8aX/yRM82OfzHJRg==}
 
   culori@4.0.2:
     resolution: {integrity: sha512-1+BhOB8ahCn4O0cep0Sh2l9KCOfOdY+BXJnKMHFFzDEouSr/el18QwXEMRlOj9UY5nCeA8UN3a/82rUWRBeyBw==}
@@ -72,7 +72,7 @@ snapshots:
 
   '@types/culori@4.0.1': {}
 
-  '@types/node@25.0.3':
+  '@types/node@25.0.10':
     dependencies:
       undici-types: 7.16.0
 

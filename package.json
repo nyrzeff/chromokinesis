@@ -11,7 +11,7 @@
     "description": "Generate color variations in the blink of an eye with this terminal-based tool. Perfect for designers and developers!",
     "devDependencies": {
         "@types/culori": "^4.0.1",
-        "@types/node": "^25.0.3",
+        "@types/node": "^25.0.10",
         "typescript": "^5.9.3"
     },
     "scripts": {
