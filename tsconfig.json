@@ -5,6 +5,7 @@
         "types": [],
         "lib": ["esnext"],
         "types": ["node"],
+        "outDir": "./lib",
 
         // Other Outputs
         "sourceMap": true,
