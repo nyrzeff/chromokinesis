@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 import { readFile } from "node:fs/promises";
 import { writeFileSync } from "node:fs";
 import os from "os";
